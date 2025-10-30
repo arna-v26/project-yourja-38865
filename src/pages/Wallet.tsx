@@ -30,11 +30,15 @@ const Wallet = () => {
       
       setIsLoadingTx(true);
       try {
+        // Get current block number and only fetch recent transactions (last 10,000 blocks)
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n;
+
         // Fetch GRN transfers
         const grnTransfers = await publicClient.getLogs({
           address: CONTRACTS.GreenToken.address,
           event: parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)'),
-          fromBlock: 'earliest' as any,
+          fromBlock: fromBlock,
           toBlock: 'latest' as any,
         });
 
@@ -42,7 +46,7 @@ const Wallet = () => {
         const ecoTransfers = await publicClient.getLogs({
           address: CONTRACTS.EcoCredit.address,
           event: parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)'),
-          fromBlock: 'earliest' as any,
+          fromBlock: fromBlock,
           toBlock: 'latest' as any,
         });
 

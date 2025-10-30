@@ -32,11 +32,14 @@ const Marketplace = () => {
     { id: 3, seller: "0xabcd...efgh", amount: 100, unit: "kWh", pricePerUnit: 12.5, location: "Delhi, DL" },
   ];
 
+  // TODO: Replace with your wallet address to receive payments
+  const MERCHANT_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
+  
   const vouchers = [
-    { id: 1, title: "Amazon Gift Card", cost: 500, token: "GRN", value: 1000, icon: Gift, merchantAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
-    { id: 2, title: "Flipkart Voucher", cost: 750, token: "GRN", value: 1500, icon: Store, merchantAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
-    { id: 3, title: "EV Charging Credits", cost: 300, token: "ECO", value: 600, icon: Zap, merchantAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
-    { id: 4, title: "Green Groceries", cost: 200, token: "ECO", value: 500, icon: ShoppingBag, merchantAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
+    { id: 1, title: "Amazon Gift Card", cost: 500, token: "GRN", value: 1000, icon: Gift, merchantAddress: MERCHANT_ADDRESS },
+    { id: 2, title: "Flipkart Voucher", cost: 750, token: "GRN", value: 1500, icon: Store, merchantAddress: MERCHANT_ADDRESS },
+    { id: 3, title: "EV Charging Credits", cost: 300, token: "ECO", value: 600, icon: Zap, merchantAddress: MERCHANT_ADDRESS },
+    { id: 4, title: "Green Groceries", cost: 200, token: "ECO", value: 500, icon: ShoppingBag, merchantAddress: MERCHANT_ADDRESS },
   ];
 
   useEffect(() => {
@@ -66,7 +69,8 @@ const Marketplace = () => {
   };
 
   const handleRedeemVoucher = async (voucher: any) => {
-    if (!isConnected) {
+    // Validate wallet connection
+    if (!isConnected || !address) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to redeem vouchers.",
@@ -75,6 +79,7 @@ const Marketplace = () => {
       return;
     }
 
+    // Check token balance
     const balance = voucher.token === "GRN" ? grnBalance : ecoBalance;
     const price = voucher.token === "GRN" ? tokenPrices.GRN : tokenPrices.ECO;
     
@@ -82,6 +87,16 @@ const Marketplace = () => {
       toast({
         title: "Insufficient Balance",
         description: `You need ${voucher.cost} ${voucher.token} but only have ${balance.toFixed(0)} ${voucher.token}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate merchant address
+    if (!voucher.merchantAddress || voucher.merchantAddress === "0x742d35Cc6634C0532925a3b844Bc454e4438f44e") {
+      toast({
+        title: "Configuration Error",
+        description: "Merchant address needs to be configured. Please contact support.",
         variant: "destructive"
       });
       return;
@@ -99,14 +114,31 @@ const Marketplace = () => {
 
       toast({
         title: "Transaction Submitted",
-        description: `Redeeming ${voucher.title}...`,
+        description: `Redeeming ${voucher.title}... Please confirm in your wallet.`,
       });
     } catch (error: any) {
-      toast({
-        title: "Transaction Failed",
-        description: error.message || "Failed to redeem voucher",
-        variant: "destructive"
-      });
+      console.error('Redemption error:', error);
+      
+      // Handle specific error types
+      if (error.message?.includes('User rejected')) {
+        toast({
+          title: "Transaction Cancelled",
+          description: "You rejected the transaction in your wallet.",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes('insufficient funds')) {
+        toast({
+          title: "Insufficient Funds",
+          description: "You don't have enough ETH for gas fees.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Transaction Failed",
+          description: error.message || "Failed to redeem voucher. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

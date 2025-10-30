@@ -118,8 +118,9 @@ export const CHAIN_CONFIG = {
   blockExplorer: 'https://sepolia.etherscan.io'
 } as const;
 
-// Token conversion rates to INR (dynamically updated)
+// Token conversion rates to INR (fixed prices)
+// TODO: Integrate with real price oracle API for production
 export const getTokenPrices = () => ({
-  GRN: 207.58 + (Math.random() * 10 - 5),
-  ECO: 72.11 + (Math.random() * 5 - 2.5)
+  GRN: 207.58, // Fixed price in INR
+  ECO: 72.11   // Fixed price in INR
 });
