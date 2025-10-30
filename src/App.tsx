@@ -14,11 +14,12 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Create Web3Modal
-// TODO: Replace with your own WalletConnect Project ID (same as in wagmi-config.ts)
+// Create Web3Modal with environment variable
+const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '818370e3002a3170bbcc14a9dd9bdf3f';
+
 createWeb3Modal({
   wagmiConfig: config,
-  projectId: '818370e3002a3170bbcc14a9dd9bdf3f',
+  projectId,
   enableAnalytics: true,
   themeMode: 'dark',
   themeVariables: {
